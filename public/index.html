@@ -30,11 +30,11 @@
         "sort": "day"
       })
       .then(
-        function(response) {
+        function (response) {
           // Handle the results here (response.result has the parsed body).
           console.log("Response", response);
         },
-        function(err) {
+        function (err) {
           console.error("Execute error", err);
         }
       );
@@ -44,7 +44,7 @@
     const channelId = document.querySelector("#channelId").value;
     return gapi.client.youtubeAnalytics.reports
       .query({
-        "ids": "channel=="+channelId,
+        "ids": "channel==" + channelId,
         "startDate": "1990-01-01",
         "endDate": "2099-01-01",
         "metrics":
@@ -53,11 +53,11 @@
         "sort": "day"
       })
       .then(
-        function(response) {
+        function (response) {
           // Handle the results here (response.result has the parsed body).
           console.log("Response", response);
         },
-        function(err) {
+        function (err) {
           console.error("Execute error", err);
         }
       );
@@ -65,7 +65,7 @@
 
   // https://developers.google.com/youtube/analytics/channel_reports#video-reports
   const gapiReport = async (query) => {
-    if(!gapi.client.youtubeAnalytics){
+    if (!gapi.client.youtubeAnalytics) {
       throw new Error("you need to authorize first");
     }
     return gapi.client.youtubeAnalytics.reports
@@ -74,10 +74,10 @@
 
   const dataChannelDeviceOS = async () => {
     const query = {
-     "ids": "channel==MINE",
+      "ids": "channel==MINE",
       "startDate": "1990-01-01",
       "endDate": "2099-01-01",
-      "metrics":"views",
+      "metrics": "views",
       "dimensions": "deviceType,operatingSystem",
       "sort": "deviceType,operatingSystem"
     };
@@ -86,10 +86,10 @@
 
   const dataChannelVideo = async () => {
     const query = {
-     "ids": "channel==MINE",
+      "ids": "channel==MINE",
       "startDate": "1990-01-01",
       "endDate": "2099-01-01",
-      "metrics":"views,likes,subscribersGained",
+      "metrics": "views,likes,subscribersGained",
       "dimensions": "video",
       "sort": "-views",
       "maxResults": 200
@@ -97,14 +97,14 @@
     return gapiReport(query);
   }
 
-  const dataChannelVideoPerDay = async () => {
+  const dataChannelSocialShares = async () => {
     const query = {
       "ids": "channel==MINE",
       "startDate": "1990-01-01",
       "endDate": "2099-01-01",
-      "dimensions": "ageGroup",
-      "metrics": "viewerPercentage",
-      "sort": "ageGroup"
+      "dimensions": "sharingService",
+      "metrics": "shares",
+      "sort": "shares"
     };
     return gapiReport(query);
   }
@@ -157,18 +157,26 @@
     return gapiReport(query);
   }
 
+  const printData = (data) => {
+    console.log(JSON.stringify(data, null, 4));
+  };
+
   const runAll = async () => {
-    dataChannelPerDay().then(r => console.log("dataChannelPerDay", r));
-    dataChannelCountry().then(r => console.log("dataChannelCountry", r));
-    dataChannelGender().then(r => console.log("dataChannelGender", r));
+    dataChannelPerDay().then(r => printData({ "dataChannelPerDay": r.result }));
+    dataChannelCountry().then(r => printData({ "dataChannelCountry": r.result }));
+    dataChannelGender().then(r => printData({ "dataChannelGender": r.result }));
+    dataChannelAgeGroup().then(r => printData({ "dataChannelAgeGroup": r.result }));
+    dataChannelVideo().then(r => printData({ "dataChannelVideo": r.result }));
+    dataChannelDeviceOS().then(r => printData({ "dataChannelDeviceOS": r.result }));
+    dataChannelSocialShares().then(r => printData({ "dataChannelSocialShares": r.result }));
   }
 
   const runQuery = async () => {
     const query = document.querySelector("#query").value;
-    gapiReport(JSON.parse(query)).then(r => console.log("runQuery", r));
+    gapiReport(JSON.parse(query)).then(r => printData({ "runQuery": r.result }));
   };
 
-  gapi.load("client:auth2", function() {
+  gapi.load("client:auth2", function () {
     gapi.auth2.init({
       client_id:
         "450211598069-moi7ggogbegi4crulgnsosju5rujrtka.apps.googleusercontent.com"
