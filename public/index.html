@@ -1,0 +1,184 @@
+<script src="https://apis.google.com/js/api.js"></script>
+<script>
+  const authenticate = async () => {
+    const response = await gapi.auth2
+      .getAuthInstance()
+      .signIn({
+        scope: "https://www.googleapis.com/auth/yt-analytics.readonly"
+      });
+    console.log("Sign-in successful", response);
+  };
+
+  const loadClient = async () => {
+    const response = await gapi.client
+      .load(
+        "https://youtubeanalytics.googleapis.com/$discovery/rest?version=v2"
+      );
+    console.log("GAPI client loaded for API", response);
+  };
+
+  // Make sure the client is loaded and sign-in is complete before calling this method.
+  function execute() {
+    return gapi.client.youtubeAnalytics.reports
+      .query({
+        "ids": "channel==MINE",
+        "startDate": "1990-01-01",
+        "endDate": "2099-01-01",
+        "metrics":
+          "views,estimatedMinutesWatched,averageViewDuration,averageViewPercentage,subscribersGained",
+        "dimensions": "day",
+        "sort": "day"
+      })
+      .then(
+        function(response) {
+          // Handle the results here (response.result has the parsed body).
+          console.log("Response", response);
+        },
+        function(err) {
+          console.error("Execute error", err);
+        }
+      );
+  }
+
+  function executeChannel() {
+    const channelId = document.querySelector("#channelId").value;
+    return gapi.client.youtubeAnalytics.reports
+      .query({
+        "ids": "channel=="+channelId,
+        "startDate": "1990-01-01",
+        "endDate": "2099-01-01",
+        "metrics":
+          "views,estimatedMinutesWatched,averageViewDuration,averageViewPercentage,subscribersGained",
+        "dimensions": "day",
+        "sort": "day"
+      })
+      .then(
+        function(response) {
+          // Handle the results here (response.result has the parsed body).
+          console.log("Response", response);
+        },
+        function(err) {
+          console.error("Execute error", err);
+        }
+      );
+  }
+
+  // https://developers.google.com/youtube/analytics/channel_reports#video-reports
+  const gapiReport = async (query) => {
+    if(!gapi.client.youtubeAnalytics){
+      throw new Error("you need to authorize first");
+    }
+    return gapi.client.youtubeAnalytics.reports
+      .query(query);
+  }
+
+  const dataChannelDeviceOS = async () => {
+    const query = {
+     "ids": "channel==MINE",
+      "startDate": "1990-01-01",
+      "endDate": "2099-01-01",
+      "metrics":"views",
+      "dimensions": "deviceType,operatingSystem",
+      "sort": "deviceType,operatingSystem"
+    };
+    return gapiReport(query);
+  }
+
+  const dataChannelVideo = async () => {
+    const query = {
+     "ids": "channel==MINE",
+      "startDate": "1990-01-01",
+      "endDate": "2099-01-01",
+      "metrics":"views,likes,subscribersGained",
+      "dimensions": "video",
+      "sort": "-views",
+      "maxResults": 200
+    };
+    return gapiReport(query);
+  }
+
+  const dataChannelVideoPerDay = async () => {
+    const query = {
+      "ids": "channel==MINE",
+      "startDate": "1990-01-01",
+      "endDate": "2099-01-01",
+      "dimensions": "ageGroup",
+      "metrics": "viewerPercentage",
+      "sort": "ageGroup"
+    };
+    return gapiReport(query);
+  }
+
+  const dataChannelAgeGroup = async () => {
+    const query = {
+      "ids": "channel==MINE",
+      "startDate": "1990-01-01",
+      "endDate": "2099-01-01",
+      "dimensions": "ageGroup",
+      "metrics": "viewerPercentage",
+      "sort": "ageGroup"
+    };
+    return gapiReport(query);
+  }
+
+  const dataChannelGender = async () => {
+    const query = {
+      "ids": "channel==MINE",
+      "startDate": "1990-01-01",
+      "endDate": "2099-01-01",
+      "dimensions": "gender",
+      "metrics": "viewerPercentage",
+      "sort": "gender"
+    };
+    return gapiReport(query);
+  }
+
+  const dataChannelCountry = async () => {
+    const query = {
+      "ids": "channel==MINE",
+      "startDate": "1990-01-01",
+      "endDate": "2099-01-01",
+      "dimensions": "country",
+      "metrics": "views,estimatedMinutesWatched,averageViewDuration,averageViewPercentage,subscribersGained,subscribersLost",
+      "sort": "country"
+    }
+    return gapiReport(query);
+  }
+
+  const dataChannelPerDay = async () => {
+    const query = {
+      "ids": "channel==MINE",
+      "startDate": "1990-01-01",
+      "endDate": "2099-01-01",
+      "dimensions": "day",
+      "metrics": "views,estimatedMinutesWatched,averageViewDuration,averageViewPercentage,subscribersGained,subscribersLost",
+      "sort": "day"
+    }
+    return gapiReport(query);
+  }
+
+  const runAll = async () => {
+    dataChannelPerDay().then(r => console.log("dataChannelPerDay", r));
+    dataChannelCountry().then(r => console.log("dataChannelCountry", r));
+    dataChannelGender().then(r => console.log("dataChannelGender", r));
+  }
+
+  const runQuery = async () => {
+    const query = document.querySelector("#query").value;
+    gapiReport(JSON.parse(query)).then(r => console.log("runQuery", r));
+  };
+
+  gapi.load("client:auth2", function() {
+    gapi.auth2.init({
+      client_id:
+        "450211598069-moi7ggogbegi4crulgnsosju5rujrtka.apps.googleusercontent.com"
+    });
+  });
+</script>
+<button onclick="authenticate().then(loadClient)">authorize and load</button>
+<button onclick="execute()">execute</button>
+<div>ChannelId: <input id="channelId" type="text"></input></div>
+<div><button onclick="executeChannel()">executeChannel</button></div>
+<div><button onclick="runAll()">runAll</button></div>
+<div><textarea id="query"></textarea></div>
+<div><button onclick="runQuery()">runQuery</button></div>
