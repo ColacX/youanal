@@ -1,0 +1,25 @@
+<html>
+  <head>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qs/6.6.0/qs.min.js"></script>
+  </head>
+  <body>
+    <script>
+      const runAsync = async () => {
+        const q = Qs.stringify({
+          scope: "https://www.googleapis.com/auth/yt-analytics.readonly",
+          access_type: "offline",
+          include_granted_scopes: "true",
+          state: "state_parameter_passthrough_value",
+          redirect_uri: "https://localhost:5000",
+          response_type: "code",
+          client_id:
+            "47558631583-at1d71l6nhegn2tsodip4n8h2ebi668e.apps.googleusercontent.com"
+        });
+        const url = "https://accounts.google.com/o/oauth2/v2/auth?" + q;
+        document.location = url;
+      };
+    </script>
+    <div></div>
+    <div><button onclick="runAsync()">runAsync</button></div>
+  </body>
+</html>

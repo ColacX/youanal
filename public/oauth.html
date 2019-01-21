@@ -1,0 +1,167 @@
+<html>
+  <head>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qs/6.6.0/qs.min.js"></script>
+    <script src="https://apis.google.com/js/api.js"></script>
+  </head>
+  <body>
+    <script>
+      let accessToken = null;
+
+      const printData = data => {
+        console.log(JSON.stringify(data, null, 4));
+      };
+
+      const gapiReport = async query => {
+        const q = Qs.stringify(query);
+        const url = "https://youtubeanalytics.googleapis.com/v2/reports?" + q;
+        const response = await fetch(url, {
+          headers: {
+            accept: "*/*",
+            authorization: "Bearer " + accessToken
+          },
+          body: null,
+          method: "GET",
+          mode: "cors"
+        });
+        return await response.json();
+      };
+
+      const dataChannelDeviceOS = async () => {
+        const query = {
+          ids: "channel==MINE",
+          startDate: "1990-01-01",
+          endDate: "2099-01-01",
+          metrics: "views",
+          dimensions: "deviceType,operatingSystem",
+          sort: "deviceType,operatingSystem"
+        };
+        return gapiReport(query);
+      };
+
+      const dataChannelVideo = async () => {
+        const query = {
+          ids: "channel==MINE",
+          startDate: "1990-01-01",
+          endDate: "2099-01-01",
+          metrics: "views,likes,subscribersGained",
+          dimensions: "video",
+          sort: "-views",
+          maxResults: 200
+        };
+        return gapiReport(query);
+      };
+
+      const dataChannelSocialShares = async () => {
+        const query = {
+          ids: "channel==MINE",
+          startDate: "1990-01-01",
+          endDate: "2099-01-01",
+          dimensions: "sharingService",
+          metrics: "shares",
+          sort: "shares"
+        };
+        return gapiReport(query);
+      };
+
+      const dataChannelAgeGroup = async () => {
+        const query = {
+          ids: "channel==MINE",
+          startDate: "1990-01-01",
+          endDate: "2099-01-01",
+          dimensions: "ageGroup",
+          metrics: "viewerPercentage",
+          sort: "ageGroup"
+        };
+        return gapiReport(query);
+      };
+
+      const dataChannelGender = async () => {
+        const query = {
+          ids: "channel==MINE",
+          startDate: "1990-01-01",
+          endDate: "2099-01-01",
+          dimensions: "gender",
+          metrics: "viewerPercentage",
+          sort: "gender"
+        };
+        return gapiReport(query);
+      };
+
+      const dataChannelCountry = async () => {
+        const query = {
+          ids: "channel==MINE",
+          startDate: "1990-01-01",
+          endDate: "2099-01-01",
+          dimensions: "country",
+          metrics:
+            "views,estimatedMinutesWatched,averageViewDuration,averageViewPercentage,subscribersGained,subscribersLost",
+          sort: "country"
+        };
+        return gapiReport(query);
+      };
+
+      const dataChannelPerDay = async () => {
+        const query = {
+          ids: "channel==MINE",
+          startDate: "1990-01-01",
+          endDate: "2099-01-01",
+          dimensions: "day",
+          metrics:
+            "views,estimatedMinutesWatched,averageViewDuration,averageViewPercentage,subscribersGained,subscribersLost",
+          sort: "day"
+        };
+        return gapiReport(query);
+      };
+
+      const runStep1 = async () => {
+        const q = Qs.stringify({
+          scope: "https://www.googleapis.com/auth/yt-analytics.readonly",
+          access_type: "offline",
+          include_granted_scopes: "true",
+          state: "state_parameter_passthrough_value",
+          redirect_uri: "https://youanal.firebaseapp.com/oauth.html",
+          response_type: "code",
+          client_id:
+            "47558631583-at1d71l6nhegn2tsodip4n8h2ebi668e.apps.googleusercontent.com"
+        });
+        const url = "https://accounts.google.com/o/oauth2/v2/auth?" + q;
+        document.location = url;
+      };
+      const runStep2 = async () => {
+        const q = Qs.parse(window.location.search);
+        const body = {
+          code: q.code,
+          redirect_uri: "https://youanal.firebaseapp.com/oauth.html",
+          client_id:
+            "47558631583-at1d71l6nhegn2tsodip4n8h2ebi668e.apps.googleusercontent.com",
+          client_secret: "Cbr2xJUII0Hn4SuDbOpVH0sg",
+          grant_type: "authorization_code"
+        };
+        const url = "https://www.googleapis.com/oauth2/v4/token";
+        const response = await fetch(url, {
+          body: JSON.stringify(body),
+          method: "POST",
+          mode: "cors"
+        });
+        const json = await response.json();
+        console.log(json);
+        accessToken = json.access_token;
+      };
+      const runStep3 = async () => {
+        dataChannelPerDay().then(r => printData({ dataChannelPerDay: r }));
+        dataChannelCountry().then(r => printData({ dataChannelCountry: r }));
+        dataChannelGender().then(r => printData({ dataChannelGender: r }));
+        dataChannelAgeGroup().then(r => printData({ dataChannelAgeGroup: r }));
+        dataChannelVideo().then(r => printData({ dataChannelVideo: r }));
+        dataChannelDeviceOS().then(r => printData({ dataChannelDeviceOS: r }));
+        dataChannelSocialShares().then(r =>
+          printData({ dataChannelSocialShares: r })
+        );
+      };
+    </script>
+    <div></div>
+    <div><button onclick="runStep1()">runStep1</button></div>
+    <div><button onclick="runStep2()">runStep2</button></div>
+    <div><button onclick="runStep3()">runStep3</button></div>
+  </body>
+</html>
